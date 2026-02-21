@@ -48,7 +48,7 @@ async function fetchPolymarketMarkets(): Promise<Market[]> {
       { headers: { Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) return [];
-    const data = await res.json();
+    const data = await res.json() as any;
     const markets: Market[] = [];
 
     for (const m of data.markets ?? []) {
@@ -81,7 +81,7 @@ async function fetchKalshiMarkets(): Promise<Market[]> {
       { headers: { Authorization: `Bearer ${key}` } },
     );
     if (!res.ok) return [];
-    const data = await res.json();
+    const data = await res.json() as any;
     const markets: Market[] = [];
 
     for (const m of data.markets ?? []) {

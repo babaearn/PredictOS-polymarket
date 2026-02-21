@@ -53,7 +53,7 @@ export async function callGrok(
       throw new Error(`Grok API error: ${response.status} - ${errorText}`);
     }
 
-    const raw = await response.json();
+    const raw = await response.json() as any;
     const text: string =
       raw.output
         ?.filter((o: { type: string }) => o.type === "message")

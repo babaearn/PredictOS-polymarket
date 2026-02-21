@@ -53,7 +53,7 @@ export async function callGemini(
       throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
-    const raw = await response.json();
+    const raw = await response.json() as any;
     const text: string = raw.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     return {
       model,

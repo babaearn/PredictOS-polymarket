@@ -43,7 +43,7 @@ function extractKalshiTicker(url: string): string | null {
 async function searchPolymarket(query: string): Promise<SimplifiedMarket[]> {
   const res = await fetch(`${GAMMA_API_URL}/public-search?q=${encodeURIComponent(query)}&events_status=open`);
   if (!res.ok) return [];
-  const data = await res.json();
+  const data = await res.json() as any;
   const markets: SimplifiedMarket[] = [];
   for (const event of data.events ?? []) {
     for (const market of event.markets ?? []) {
@@ -63,7 +63,7 @@ async function searchKalshi(query: string): Promise<SimplifiedMarket[]> {
     { headers: dflowKey ? { Authorization: `Bearer ${dflowKey}` } : {} },
   );
   if (!res.ok) return [];
-  const data = await res.json();
+  const data = await res.json() as any;
   const markets: SimplifiedMarket[] = [];
   for (const event of data.events ?? []) {
     for (const market of event.markets ?? []) {

@@ -28,7 +28,7 @@ async function fetchPolymarketMarkets(slug: string) {
   for (const endpoint of endpoints) {
     const res = await fetch(endpoint);
     if (!res.ok) continue;
-    const data = await res.json();
+    const data = await res.json() as any;
     const event = Array.isArray(data) ? data[0] : data;
     if (event?.markets?.length) return { eventId: String(event.id ?? ""), markets: event.markets };
   }
