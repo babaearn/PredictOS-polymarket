@@ -1,6 +1,6 @@
 /**
  * Gemini AI caller (Node.js / Express version)
- * Supports: gemini-2.0-flash, gemini-2.5-pro
+ * Supports: gemini-2.5-flash, gemini-2.5-pro
  */
 
 export interface GeminiResponseResult {
@@ -18,7 +18,7 @@ export async function callGemini(
   message: string,
   systemPrompt: string,
   responseFormat: "json_object" | "text",
-  model: string = "gemini-2.0-flash",
+  model: string = "gemini-2.5-flash",
   maxRetries: number = 3,
 ): Promise<GeminiResponseResult> {
   const apiKey = process.env.GEMINI_API_KEY;

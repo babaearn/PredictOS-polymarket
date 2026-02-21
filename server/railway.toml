@@ -10,7 +10,7 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Environment Variables — paste your API keys in Railway Dashboard > Variables
+# Environment Variables — paste your values in Railway Dashboard > Variables
 # ─────────────────────────────────────────────────────────────────────────────
 [environments.production.variables]
 
@@ -21,44 +21,24 @@ PORT = "3001"
 # Set this AFTER first deploy so Telegram webhook registers correctly
 PUBLIC_URL = ""
 
-# ── AI Providers (add at least one) ─────────────────────────────────────────
-# Gemini — FREE at https://aistudio.google.com → Get API Key
+# ── AI (analysis only — no trades are executed) ──────────────────────────────
 GEMINI_API_KEY = ""
 
-# xAI Grok — https://console.x.ai
-XAI_API_KEY = ""
-
-# OpenAI — https://platform.openai.com/api-keys
-OPENAI_API_KEY = ""
+# Set NA if you don't want to use these providers
+XAI_API_KEY = "NA"
+OPENAI_API_KEY = "NA"
 
 # ── Market Data APIs ─────────────────────────────────────────────────────────
-# Dome API (Polymarket data) — https://dashboard.domeapi.io
-DOME_API_KEY = ""
-
-# DFlow API (Kalshi data) — DM @dflow on X to request
-DFLOW_API_KEY = ""
+# Set NA if you don't have the key yet — add later when ready
+DOME_API_KEY = "NA"
+DFLOW_API_KEY = "NA"
 
 # ── Telegram ─────────────────────────────────────────────────────────────────
-# Bot token — @BotFather on Telegram → /newbot
 TELEGRAM_BOT_TOKEN = ""
-
-# Chat ID for arbitrage alerts — message @userinfobot on Telegram to get yours
-# For a channel use the channel's numeric ID (e.g. -1001234567890)
 TELEGRAM_ALERT_CHAT_ID = ""
 
 # ── Arbitrage Scanner Settings ───────────────────────────────────────────────
-# Minimum profit % to trigger alert (leave as 3 to start)
 ARB_MIN_PROFIT_PCT = "3"
-
-# Minimum market volume in USD (leave as 10000 to start)
 ARB_MIN_VOLUME = "10000"
-
-# Max markets scanned per platform per run
 ARB_SCAN_LIMIT = "50"
-
-# AI model used for market matching (gemini-2.0-flash is free and fast)
-ARB_AI_MODEL = "gemini-2.0-flash"
-
-# ── Polymarket Betting (optional — only if using the betting bot) ────────────
-POLYMARKET_WALLET_PRIVATE_KEY = ""
-POLYMARKET_PROXY_WALLET_ADDRESS = ""
+ARB_AI_MODEL = "gemini-2.5-flash"

@@ -12,7 +12,7 @@
  *   ARB_MIN_PROFIT_PCT     default: 3      (minimum % profit to alert)
  *   ARB_MIN_VOLUME         default: 10000  (minimum market volume $)
  *   ARB_SCAN_LIMIT         default: 50     (markets to scan per platform)
- *   ARB_AI_MODEL           default: gemini-2.0-flash
+ *   ARB_AI_MODEL           default: gemini-2.5-flash
  */
 
 import cron from "node-cron";
@@ -22,7 +22,7 @@ import { sendArbAlert, sendNotification } from "../telegram/bot";
 const MIN_PROFIT = parseFloat(process.env.ARB_MIN_PROFIT_PCT ?? "3");
 const MIN_VOLUME = parseFloat(process.env.ARB_MIN_VOLUME ?? "10000");
 const SCAN_LIMIT = parseInt(process.env.ARB_SCAN_LIMIT ?? "50");
-const AI_MODEL = process.env.ARB_AI_MODEL ?? "gemini-2.0-flash";
+const AI_MODEL = process.env.ARB_AI_MODEL ?? "gemini-2.5-flash";
 
 const DOME_API_BASE = "https://api.domeapi.io/v1";
 const DFLOW_API_BASE = "https://a.prediction-markets-api.dflow.net/api/v1";
