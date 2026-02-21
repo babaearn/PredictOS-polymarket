@@ -1,0 +1,33 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm install && npm run build"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment Variables — paste your values in Railway Dashboard > Variables
+# ─────────────────────────────────────────────────────────────────────────────
+[environments.production.variables]
+
+# ── Express API Server URL ───────────────────────────────────────────────────
+# The public URL of your Express server Railway service
+# e.g. https://predictos-server-production.up.railway.app
+EXPRESS_API_URL = ""
+
+# ── Supabase (if using Supabase instead of Express server) ───────────────────
+SUPABASE_URL = ""
+SUPABASE_ANON_KEY = ""
+
+# ── Dome API (for Wallet Tracking feature) ───────────────────────────────────
+# https://dashboard.domeapi.io
+DOME_API_KEY = ""
+
+# ── Irys / Verifiable Agent (optional) ───────────────────────────────────────
+IRYS_CHAIN_ENVIRONMENT = "devnet"
+IRYS_SOLANA_PRIVATE_KEY = ""
+IRYS_SOLANA_RPC_URL = "https://api.devnet.solana.com"
