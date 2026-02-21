@@ -49,8 +49,8 @@ export async function setupBot(webhookUrl: string): Promise<void> {
  */
 export function handleUpdate(update: TelegramBot.Update): void {
   const b = getBot();
-  b.processUpdate(update);
   attachHandlers(b);
+  b.processUpdate(update);
 }
 
 let handlersAttached = false;
