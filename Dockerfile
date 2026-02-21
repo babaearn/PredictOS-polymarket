@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY server/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy source and build TypeScript
 COPY server/ ./
