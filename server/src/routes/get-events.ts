@@ -41,7 +41,7 @@ async function fetchKalshiMarkets(ticker: string) {
     headers: dflowKey ? { Authorization: `Bearer ${dflowKey}` } : {},
   });
   if (!res.ok) throw new Error(`DFlow error: ${res.status}`);
-  const data = await res.json();
+  const data = await res.json() as any;
   return data.markets ?? [];
 }
 
