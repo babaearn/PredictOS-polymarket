@@ -8,6 +8,7 @@
 import { bookmakerAnalysisPrompt } from "../_shared/ai/prompts/bookmakerAnalysis.ts";
 import { callGrokResponses } from "../_shared/ai/callGrok.ts";
 import { callOpenAIResponses } from "../_shared/ai/callOpenAI.ts";
+import { callGemini } from "../_shared/ai/callGemini.ts";
 import type { GrokMessage, GrokOutputText, OpenAIMessage, OpenAIOutputText } from "../_shared/ai/types.ts";
 import type {
   AnalysisAggregatorRequest,
@@ -24,6 +25,10 @@ const OPENAI_MODELS = ["gpt-5.2", "gpt-5.1", "gpt-5-nano", "gpt-4.1", "gpt-4.1-m
  */
 function isOpenAIModel(model: string): boolean {
   return OPENAI_MODELS.includes(model) || model.startsWith("gpt-");
+}
+
+function isGeminiModel(model: string): boolean {
+  return model.startsWith("gemini-");
 }
 
 const corsHeaders = {
@@ -107,75 +112,48 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const useOpenAI = isOpenAIModel(model);
-
     // Build prompt and call AI
     const agentAnalyses = (analyses || []).map(a => ({
       agentId: a.agentId,
       model: a.model,
       analysis: a.analysis,
     }));
-    
+
     const { systemPrompt, userPrompt } = bookmakerAnalysisPrompt(agentAnalyses, x402Results || [], eventIdentifier, pmType);
 
     let aiResponseModel: string;
     let aiTokensUsed: number | undefined;
     let text: string;
 
-    if (useOpenAI) {
+    if (isGeminiModel(model)) {
+      console.log("Calling Gemini with model:", model);
+      const geminiResponse = await callGemini(userPrompt, systemPrompt, "json_object", model, 3);
+      console.log("Gemini response received, tokens:", geminiResponse.usage?.total_tokens);
+      aiResponseModel = geminiResponse.model;
+      aiTokensUsed = geminiResponse.usage?.total_tokens;
+      text = geminiResponse.text;
+    } else if (isOpenAIModel(model)) {
       console.log("Calling OpenAI with model:", model);
-      const openaiResponse = await callOpenAIResponses(
-        userPrompt,
-        systemPrompt,
-        "json_object",
-        model,
-        3
-      );
+      const openaiResponse = await callOpenAIResponses(userPrompt, systemPrompt, "json_object", model, 3);
       console.log("OpenAI response received, tokens:", openaiResponse.usage?.total_tokens);
-
       aiResponseModel = openaiResponse.model;
       aiTokensUsed = openaiResponse.usage?.total_tokens;
-
-      // Parse OpenAI response
       const content: OpenAIOutputText[] = [];
       for (const item of openaiResponse.output) {
-        if (item.type === "message") {
-          const messageItem = item as OpenAIMessage;
-          content.push(...messageItem.content);
-        }
+        if (item.type === "message") content.push(...(item as OpenAIMessage).content);
       }
-
-      text = content
-        .map((item) => item.text)
-        .filter((t) => t !== undefined)
-        .join("\n");
+      text = content.map((item) => item.text).filter((t) => t !== undefined).join("\n");
     } else {
       console.log("Calling Grok AI with model:", model);
-      const grokResponse = await callGrokResponses(
-        userPrompt,
-        systemPrompt,
-        "json_object",
-        model,
-        3
-      );
+      const grokResponse = await callGrokResponses(userPrompt, systemPrompt, "json_object", model, 3);
       console.log("Grok response received, tokens:", grokResponse.usage?.total_tokens);
-
       aiResponseModel = grokResponse.model;
       aiTokensUsed = grokResponse.usage?.total_tokens;
-
-      // Parse Grok response
       const content: GrokOutputText[] = [];
       for (const item of grokResponse.output) {
-        if (item.type === "message") {
-          const messageItem = item as GrokMessage;
-          content.push(...messageItem.content);
-        }
+        if (item.type === "message") content.push(...(item as GrokMessage).content);
       }
-
-      text = content
-        .map((item) => item.text)
-        .filter((t) => t !== undefined)
-        .join("\n");
+      text = content.map((item) => item.text).filter((t) => t !== undefined).join("\n");
     }
 
     let aggregatedResult: AggregatedAnalysis;

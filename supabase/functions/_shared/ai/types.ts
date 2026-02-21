@@ -1,3 +1,20 @@
+// =============================================================================
+// Gemini AI types
+// =============================================================================
+export interface GeminiUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
+export interface GeminiResponseResult {
+  model: string;
+  text: string;
+  usage: GeminiUsage;
+  status: "completed" | "failed";
+}
+
+// =============================================================================
 // Types for BlockRun API requests and responses (x402 micropayments)
 export interface BlockRunRequestMessage {
   role: "user" | "assistant" | "system";

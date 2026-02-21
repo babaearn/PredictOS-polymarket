@@ -15,6 +15,7 @@ import { analyzeEventMarketsPrompt } from "../_shared/ai/prompts/analyzeEventMar
 import { callGrokResponses } from "../_shared/ai/callGrok.ts";
 import { callOpenAIResponses } from "../_shared/ai/callOpenAI.ts";
 import { callBlockRunResponses, isBlockRunModel } from "../_shared/ai/callBlockRun.ts";
+import { callGemini } from "../_shared/ai/callGemini.ts";
 import type {
   GrokMessage,
   GrokOutputText,
@@ -40,17 +41,18 @@ function isOpenAIModel(model: string): boolean {
   return OPENAI_MODELS.includes(model) || model.startsWith("gpt-");
 }
 
+function isGeminiModel(model: string): boolean {
+  return model.startsWith("gemini-");
+}
+
 /**
  * Determine the AI provider for a given model
- * Priority: BlockRun > OpenAI > Grok (default)
+ * Priority: BlockRun > Gemini > OpenAI > Grok (default)
  */
-function getAIProvider(model: string): "blockrun" | "openai" | "grok" {
-  if (isBlockRunModel(model)) {
-    return "blockrun";
-  }
-  if (isOpenAIModel(model)) {
-    return "openai";
-  }
+function getAIProvider(model: string): "blockrun" | "gemini" | "openai" | "grok" {
+  if (isBlockRunModel(model)) return "blockrun";
+  if (isGeminiModel(model)) return "gemini";
+  if (isOpenAIModel(model)) return "openai";
   return "grok";
 }
 
@@ -134,7 +136,20 @@ Deno.serve(async (req: Request) => {
     let aiPaymentCost: string | undefined;
     let text: string;
 
-    if (aiProvider === "blockrun") {
+    if (aiProvider === "gemini") {
+      console.log("Calling Gemini with model:", model);
+      const geminiResponse = await callGemini(
+        userPrompt,
+        systemPrompt,
+        "json_object",
+        model,
+        3
+      );
+      console.log("Gemini response received, tokens:", geminiResponse.usage?.total_tokens);
+      aiResponseModel = geminiResponse.model;
+      aiTokensUsed = geminiResponse.usage?.total_tokens;
+      text = geminiResponse.text;
+    } else if (aiProvider === "blockrun") {
       // BlockRun: wallet-based x402 micropayments, no API key required
       console.log("Calling BlockRun with model:", model);
       const enableSearch = tools?.includes("x_search") || tools?.includes("web_search");

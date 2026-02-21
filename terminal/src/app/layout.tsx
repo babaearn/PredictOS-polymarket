@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,11 +24,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* Telegram Mini App SDK — enables native theming, back button, and haptics */}
+        <Script
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body className="min-h-screen bg-background text-foreground antialiased overflow-hidden">
         {/* Background Effects */}
         <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 pointer-events-none" />
         <div className="fixed inset-0 grid-bg opacity-30 pointer-events-none" />
-        
+
         {/* Main Content */}
         <div className="relative z-10 h-screen">
           {children}

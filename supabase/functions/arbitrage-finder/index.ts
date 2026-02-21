@@ -17,6 +17,7 @@ import { arbitrageAnalysisPrompt } from "../_shared/ai/prompts/arbitrageAnalysis
 import { searchQueryGeneratorPrompt } from "../_shared/ai/prompts/searchQueryGenerator.ts";
 import { callGrokResponses } from "../_shared/ai/callGrok.ts";
 import { callOpenAIResponses } from "../_shared/ai/callOpenAI.ts";
+import { callGemini } from "../_shared/ai/callGemini.ts";
 import type { GrokMessage, GrokOutputText, OpenAIMessage, OpenAIOutputText } from "../_shared/ai/types.ts";
 import { request as dflowRequest } from "../_shared/dflow/client.ts";
 import type {
@@ -36,6 +37,10 @@ const OPENAI_MODELS = ["gpt-5.2", "gpt-5.1", "gpt-5-nano", "gpt-4.1", "gpt-4.1-m
 
 function isOpenAIModel(model: string): boolean {
   return OPENAI_MODELS.includes(model) || model.startsWith("gpt-");
+}
+
+function isGeminiModel(model: string): boolean {
+  return model.startsWith("gemini-");
 }
 
 const corsHeaders = {
@@ -399,53 +404,29 @@ async function generateSearchQuery(
     targetPlatform,
   });
   
-  const useOpenAI = isOpenAIModel(model);
   let text: string;
-  
-  if (useOpenAI) {
-    const response = await callOpenAIResponses(
-      userPrompt,
-      systemPrompt,
-      "text",
-      model,
-      1 // Low max_tokens since we only want 1-2 words
-    );
-    
+
+  if (isGeminiModel(model)) {
+    const response = await callGemini(userPrompt, systemPrompt, "text", model, 1);
+    text = response.text.trim();
+  } else if (isOpenAIModel(model)) {
+    const response = await callOpenAIResponses(userPrompt, systemPrompt, "text", model, 1);
     const content: OpenAIOutputText[] = [];
     for (const item of response.output) {
       if (item.type === "message") {
-        const messageItem = item as OpenAIMessage;
-        content.push(...messageItem.content);
+        content.push(...(item as OpenAIMessage).content);
       }
     }
-    
-    text = content
-      .map((item) => item.text)
-      .filter((t) => t !== undefined)
-      .join("")
-      .trim();
+    text = content.map((item) => item.text).filter((t) => t !== undefined).join("").trim();
   } else {
-    const response = await callGrokResponses(
-      userPrompt,
-      systemPrompt,
-      "text",
-      model,
-      1
-    );
-    
+    const response = await callGrokResponses(userPrompt, systemPrompt, "text", model, 1);
     const content: GrokOutputText[] = [];
     for (const item of response.output) {
       if (item.type === "message") {
-        const messageItem = item as GrokMessage;
-        content.push(...messageItem.content);
+        content.push(...(item as GrokMessage).content);
       }
     }
-    
-    text = content
-      .map((item) => item.text)
-      .filter((t) => t !== undefined)
-      .join("")
-      .trim();
+    text = content.map((item) => item.text).filter((t) => t !== undefined).join("").trim();
   }
   
   // Clean up - remove quotes, limit to first 2 words
@@ -508,59 +489,33 @@ async function analyzeArbitrage(
     searchPlatform,
   });
   
-  const useOpenAI = isOpenAIModel(model);
   let text: string;
   let modelUsed: string;
   let tokensUsed: number | undefined;
-  
-  if (useOpenAI) {
-    const response = await callOpenAIResponses(
-      userPrompt,
-      systemPrompt,
-      "json_object",
-      model,
-      3
-    );
-    
+
+  if (isGeminiModel(model)) {
+    const response = await callGemini(userPrompt, systemPrompt, "json_object", model, 3);
     modelUsed = response.model;
     tokensUsed = response.usage?.total_tokens;
-    
+    text = response.text;
+  } else if (isOpenAIModel(model)) {
+    const response = await callOpenAIResponses(userPrompt, systemPrompt, "json_object", model, 3);
+    modelUsed = response.model;
+    tokensUsed = response.usage?.total_tokens;
     const content: OpenAIOutputText[] = [];
     for (const item of response.output) {
-      if (item.type === "message") {
-        const messageItem = item as OpenAIMessage;
-        content.push(...messageItem.content);
-      }
+      if (item.type === "message") content.push(...(item as OpenAIMessage).content);
     }
-    
-    text = content
-      .map((item) => item.text)
-      .filter((t) => t !== undefined)
-      .join("\n");
+    text = content.map((item) => item.text).filter((t) => t !== undefined).join("\n");
   } else {
-    const response = await callGrokResponses(
-      userPrompt,
-      systemPrompt,
-      "json_object",
-      model,
-      3
-    );
-    
+    const response = await callGrokResponses(userPrompt, systemPrompt, "json_object", model, 3);
     modelUsed = response.model;
     tokensUsed = response.usage?.total_tokens;
-    
     const content: GrokOutputText[] = [];
     for (const item of response.output) {
-      if (item.type === "message") {
-        const messageItem = item as GrokMessage;
-        content.push(...messageItem.content);
-      }
+      if (item.type === "message") content.push(...(item as GrokMessage).content);
     }
-    
-    text = content
-      .map((item) => item.text)
-      .filter((t) => t !== undefined)
-      .join("\n");
+    text = content.map((item) => item.text).filter((t) => t !== undefined).join("\n");
   }
   
   const parsed = JSON.parse(text);
