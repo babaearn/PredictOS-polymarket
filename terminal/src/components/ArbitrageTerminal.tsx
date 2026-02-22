@@ -524,7 +524,7 @@ const ArbitrageTerminal = () => {
                   </p>
                 </div>
 
-                {result.risks.length > 0 && (
+                {result.risks?.length > 0 && (
                   <div>
                     <div className="text-xs text-muted-foreground uppercase font-mono mb-2 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />

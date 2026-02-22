@@ -89,7 +89,7 @@ export interface ArbitrageResponse {
   success: boolean;
   data?: ArbitrageAnalysis;
   error?: string;
-  metadata: {
+  metadata?: {
     requestId: string;
     timestamp: string;
     processingTimeMs: number;
