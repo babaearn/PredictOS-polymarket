@@ -27,7 +27,7 @@ type AIModel = string;
 interface ModelOption {
   value: AIModel;
   label: string;
-  provider: "grok" | "openai";
+  provider: "grok" | "openai" | "gemini";
 }
 
 const GROK_MODELS: ModelOption[] = [
@@ -45,7 +45,12 @@ const OPENAI_MODELS: ModelOption[] = [
   { value: "gpt-4.1-mini", label: "GPT-4.1 Mini", provider: "openai" },
 ];
 
-const ALL_MODELS: ModelOption[] = [...GROK_MODELS, ...OPENAI_MODELS];
+const GEMINI_MODELS: ModelOption[] = [
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "gemini" },
+  { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "gemini" },
+];
+
+const ALL_MODELS: ModelOption[] = [...GROK_MODELS, ...OPENAI_MODELS, ...GEMINI_MODELS];
 
 // URL type detection
 function detectUrlType(url: string): 'kalshi' | 'polymarket' | 'none' {
@@ -297,6 +302,26 @@ const ArbitrageTerminal = () => {
                         OpenAI Models
                       </div>
                       {OPENAI_MODELS.map((m) => (
+                        <button
+                          key={m.value}
+                          onClick={() => {
+                            setModel(m.value);
+                            setDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                            model === m.value
+                              ? 'bg-primary/20 text-primary'
+                              : 'hover:bg-secondary text-foreground'
+                          }`}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+
+                      <div className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider px-2 py-1 mt-2">
+                        Google Gemini Models
+                      </div>
+                      {GEMINI_MODELS.map((m) => (
                         <button
                           key={m.value}
                           onClick={() => {

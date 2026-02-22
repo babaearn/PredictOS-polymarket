@@ -58,7 +58,7 @@ type AIModel = string;
 interface ModelOption {
   value: AIModel;
   label: string;
-  provider: "grok" | "openai";
+  provider: "grok" | "openai" | "gemini";
 }
 
 const GROK_MODELS: ModelOption[] = [
@@ -76,7 +76,12 @@ const OPENAI_MODELS: ModelOption[] = [
   { value: "gpt-4.1-mini", label: "GPT-4.1 Mini", provider: "openai" },
 ];
 
-const ALL_MODELS: ModelOption[] = [...GROK_MODELS, ...OPENAI_MODELS];
+const GEMINI_MODELS: ModelOption[] = [
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "gemini" },
+  { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "gemini" },
+];
+
+const ALL_MODELS: ModelOption[] = [...GROK_MODELS, ...OPENAI_MODELS, ...GEMINI_MODELS];
 
 // Tool options
 interface ToolOption {
@@ -97,6 +102,10 @@ const TOOL_OPTIONS: ToolOption[] = [
  */
 function isOpenAIModel(model: string): boolean {
   return OPENAI_MODELS.some(m => m.value === model) || model.startsWith("gpt-");
+}
+
+function isGeminiModel(model: string): boolean {
+  return model.startsWith("gemini-");
 }
 
 // URL type detection
@@ -253,7 +262,9 @@ const AgenticMarketAnalysis = () => {
 
   const getProviderBadge = (model: string) => {
     const modelOption = ALL_MODELS.find(m => m.value === model);
-    return modelOption?.provider === "openai" ? "OpenAI" : "xAI";
+    if (modelOption?.provider === "openai") return "OpenAI";
+    if (modelOption?.provider === "gemini") return "Google";
+    return "xAI";
   };
 
   const addAgent = () => {
@@ -425,14 +436,14 @@ const AgenticMarketAnalysis = () => {
   const updateAgentModel = (agentId: string, model: string) => {
     setAgents(prev => prev.map(a => {
       if (a.id !== agentId) return a;
-      
-      // When switching to OpenAI, only keep polyfactual tool (not Grok-only tools)
+
+      // When switching to OpenAI or Gemini, only keep polyfactual tool (not Grok-only tools)
       let newTools = a.tools;
-      if (isOpenAIModel(model) && a.tools) {
+      if ((isOpenAIModel(model) || isGeminiModel(model)) && a.tools) {
         newTools = a.tools.filter(t => t === 'polyfactual') as AgentTool[];
         if (newTools.length === 0) newTools = undefined;
       }
-      
+
       return { ...a, model, tools: newTools };
     }));
     setOpenDropdown(null);
@@ -458,9 +469,9 @@ const AgenticMarketAnalysis = () => {
       // Check if this is a Grok-only tool
       const isGrokOnlyTool = tool === 'x_search' || tool === 'web_search';
       
-      // If selecting a Grok-only tool and current model is OpenAI or empty, switch to Grok
+      // If selecting a Grok-only tool and current model is OpenAI/Gemini or empty, switch to Grok
       let newModel = a.model;
-      if (newTools && isGrokOnlyTool && (isOpenAIModel(a.model) || !a.model)) {
+      if (newTools && isGrokOnlyTool && (isOpenAIModel(a.model) || isGeminiModel(a.model) || !a.model)) {
         newModel = "grok-4-1-fast-reasoning";
       }
       
@@ -1075,8 +1086,10 @@ const AgenticMarketAnalysis = () => {
       >
         {selectedModel && (
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-            getProviderBadge(selectedModel) === "OpenAI" 
-              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50" 
+            getProviderBadge(selectedModel) === "OpenAI"
+              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
+              : getProviderBadge(selectedModel) === "Google"
+              ? "bg-blue-500/20 text-blue-400 border border-blue-500/50"
               : "bg-orange-500/20 text-orange-400 border border-orange-500/50"
           }`}>
             {getProviderBadge(selectedModel)}
@@ -1147,11 +1160,42 @@ const AgenticMarketAnalysis = () => {
             </>
           )}
           
+          {/* Google Gemini Section - Only show if not restricted to Grok */}
+          {!restrictToGrok && (
+            <>
+              <div className="px-3 py-2 bg-blue-500/10 border-y border-border sticky top-0 z-10">
+                <div className="flex items-center gap-2">
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/50">
+                    Google
+                  </span>
+                  <span className="text-xs font-semibold text-blue-400">Gemini Models</span>
+                </div>
+              </div>
+              <div className="py-1">
+                {GEMINI_MODELS.map((model) => (
+                  <button
+                    key={model.value}
+                    type="button"
+                    onClick={() => onSelect(model.value)}
+                    className={`w-full px-4 py-2.5 text-left text-sm font-mono transition-colors ${
+                      selectedModel === model.value
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    }`}
+                  >
+                    <span className="block">{model.label}</span>
+                    <span className="block text-[10px] opacity-60 mt-0.5">{model.value}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
           {/* Info message when restricted to Grok */}
           {restrictToGrok && (
             <div className="px-3 py-2 border-t border-border bg-secondary/30">
               <p className="text-[10px] text-muted-foreground">
-                OpenAI models hidden (tools are enabled)
+                OpenAI and Google models hidden (tools are enabled)
               </p>
             </div>
           )}
